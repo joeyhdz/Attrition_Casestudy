@@ -1,16 +1,13 @@
 ---
-title: "Employee Attrition Data Analysis"
+title: "Attrition Project"
 author: "Joey Hernandez"
-date: "11/24/2022"
+date: "2022-11-25"
+always_allow_html: TRUE
 output: 
-  html_document:
-    code_folding: hide
-
-editor_options: 
-  chunk_output_type: console
+  
+  html_document: default
+  github_document: default
 ---
-
-
 ## Introduction:
 Steven Williams - CEO
 Jamie Caulfield - CFO
@@ -541,4 +538,3 @@ RMSE
 # Prediction Model Results
 
 # Rshiny Application
-
