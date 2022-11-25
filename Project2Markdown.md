@@ -1,11 +1,16 @@
 ---
-title: "Project2"
+title: "Employee Attrition Data Analysis"
 author: "Joey Hernandez"
-date: "`r Sys.Date()`"
-output:
-  html_document: default
-  github_document: default
+date: "11/24/2022"
+output: 
+  html_document:
+    code_folding: hide
+
+editor_options: 
+  chunk_output_type: console
 ---
+
+
 ## Introduction:
 Steven Williams - CEO
 Jamie Caulfield - CFO
@@ -42,8 +47,8 @@ ensuring internal projects are completed efficiently and on time, and promoting 
 by keeping persons of contacts consistent over long periods of time. 
 
 
-# Initilzing data and Libraries  
-```{r}
+
+```{r setup, include=FALSE}
 library(tidyverse)
 library(janitor)
 library(readxl)
@@ -67,12 +72,24 @@ employee <- read.csv("C:/Users/Joey/Desktop/project2/CaseStudy2-data.csv", strin
 ```
 
 
-Adjusting titles and creation of variables 
-```{r}
-glimpse(data)
-get_dupes(data)
-summary(data)
+Inspection of data :
+Before working with the data, we like to get a snapshot of what types of variables we have,
+if there are any missing pieces of information, or potential computer created errors 
+based on the methods of data creation. 
+We have fortunatley been given a great dataset that needed minimal intervention.
+there was no found missing pieces, or visble errors.
+```{r import/tidy}
+# glimpse(data)
+# get_dupes(data)
+# missing <- sapply(data, function(x) sum(is.na(x)))
+# sum(missing)
+# summary(data)
+```
 
+# subcategories
+We will create subcategories of factors for helpful investigation as well
+as for use in our predictive models. 
+```{r}
 # CREATING INTUITIVE TITLE FOR VIZ OF DATA
 vizdata$Attrition <- ifelse(vizdata$Attrition == "Yes", "Left", "Stayed")
 
@@ -106,7 +123,7 @@ vizdata$Generations <- ifelse(data$Age > 26 & data$Age < 42, "Millennials",
 ```
 
 
-Encoding variables for future model use and investigation:
+# Encoding variables for future model use and further investigations:
 ```{r}
 # CAT CODING BELOW:
 data$Attrition <- ifelse(data$Attrition == "Yes",1,0)
@@ -217,8 +234,7 @@ AttritionCorrelation$Feature <- as.factor(AttritionCorrelation$Feature)
 ggcorrplot(corr = data_corr, hc.order = TRUE,insig = 'blank',
            lab = TRUE, lab_size = 3, colors = c("#6D9EC1", "white", "#E46726"))+
   labs(title = "Correlation Between Variables and Attrition",
-       subtitle = "Netural and Positive Correlation",
-       caption = "Source: IBM HR Analytics") +
+       subtitle = "Netural and Positive Correlation") +
   theme(plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5))
 
