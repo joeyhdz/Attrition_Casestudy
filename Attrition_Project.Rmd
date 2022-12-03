@@ -1,16 +1,15 @@
 ---
 always_allow_html: TRUE
 output: 
+  github_document: default
   html_document: 
     code_folding: hide
-  github_document: default
-
 ---
 <center><h1>FritoLay Attrition Case Study</h1></center>
 
 
 <hr>
-#### Introduction:
+### Introduction:
 * Steven Williams - CEO - FritoLay
 * Jamie Caulfield - CFO - FritoLay
 
@@ -19,14 +18,14 @@ Thank you for allowing us the opportunity
 to work with FritoLay on an analysis of your current employee management and attrition data.
 
 
-#### About DDS Analytics: 
+### About DDS Analytics: 
 At DDS Analytics we specialize in talent management solutions for fortune 100 companies, 
 specifically in the iterative process of developing and retaining employees. Our analytics and 
 solutions may include workforce planning, employee training programs, identifying high-potential employees and 
 reducing/preventing voluntary employee turnover(attrition). 
 
 
-#### Attrition Defined: 
+### Attrition Defined: 
 According to the 2021 bureau of labor statistics report, 25% of the turnover rate seen within the labor market
 is due to voluntary turn over. As a general rule employee retention rates of 90% or higher are considered good, and a 
 company should aim for a turnover rate of 10% or less. 
@@ -61,6 +60,10 @@ library(e1071)
 library(kableExtra)
 library(StepReg)
 library(ggthemes)
+library(olsrr)
+library(stargazer)
+library(car)
+library(leaps)
 # READ IN DATA
 data <- as.data.frame(read.csv("C:/Users/Joey/Desktop/project2/CaseStudy2-data.csv"))
 vizdata <- as.data.frame(read.csv("C:/Users/Joey/Desktop/project2/CaseStudy2-data.csv"))
@@ -69,11 +72,14 @@ employee <- read.csv("C:/Users/Joey/Desktop/project2/CaseStudy2-data.csv", strin
 ```
 <center><h1>Exploratory Data Analysis</h1></center>
 <hr>
-#### Inspection of data:
+### Inspection of data:
 Before working with the data, the first step in our process
 is to get a snapshot of what types of variables we will be working with,
 if there are any missing pieces of information, potential computer created errors 
 based on the methods of data creation, and whether or not the data values themselves need intervention.
+The data provided needs minimal or arguably no intervention. There does seem to be 
+variables which may be interpreted and handled with some slight modifications which 
+we will address shortly. 
 ```{r import/tidy}
 # glimpse(data)
 # get_dupes(data)
@@ -81,12 +87,10 @@ based on the methods of data creation, and whether or not the data values themse
 # sum(missing)
 # summary(data)
 ```
-The data provided needs minimal or arguably no intervention. There does seem to be 
-variables which may be interpreted and handled with some slight modifications which 
-we will address shortly. 
 
 
-#### Visualzing data and Relationships:
+
+### Visualzing data and Relationships:
 Before we begin to deep dive into any aspect of the data, DDS Analytics ops to engage in 
 a visualization of the data, so that we can discover, and view different relationships that will help
 us not only identify potential answers to explicit questions you may have but the visualizations may also serve 
@@ -148,7 +152,7 @@ gridExtra::grid.arrange(grobs= my_plots_cat, ncol = 4)
 ```
 
 
-#### Creating Variable Subcategories:
+### Creating Variable Subcategories:
 To intuitively interpret attrition within our visualizations, we created a "vizdata" data frame
 which changes the "yes" or "no" logical status of attrition to "Left" or "Stayed". 
 
@@ -191,7 +195,7 @@ vizdata$Generations <- ifelse(data$Age > 26 & data$Age < 42, "Millennials",
 ```
 
 
-#### Encoding Variables for Model Usage:
+### Encoding Variables for Model Usage:
 The data we are working with have many different categorical variables. One of the objectives of our work is
 to create a predictive attrition model that utilizes the data we have to make predictions on future attrition. 
 So that we can build an effective and efficient model, we will convert categorical data into numerical data by process of 
@@ -200,7 +204,7 @@ So that we can build an effective and efficient model, we will convert categoric
 One-Hot Encoding is simply the process of assigning replacement binary variables to categorical variables given in the data. 
 
 
-#### Encoding variables and Feature Engineering for model use and investigations:
+### Encoding variables and Feature Engineering for model use and investigations:
 After Encoding and engineering new features to use in our investigation and modeling 
 we will subset the data for columns that represent logical baseline reference points, and create a scaled data set to use for running the KNN prediction model.
 ```{r}
@@ -266,7 +270,7 @@ data$LogIncome <- log(data$MonthlyIncome)
 ```
 
 
-#### Scaling Data:
+### Scaling Data:
 The reason for scaling the data for the KNN model is because KNN uses Euclidean Distance to find similarities between observations.
 To ensure a quality model we need to account for certain variables which may have a higher magnitude than others so that it is not biased towards those variables with higher magnitudes.
 ```{r}
@@ -284,7 +288,7 @@ scaled_data <- data.frame(apply(rdata, MARGIN = 2, FUN = function(X) (X - min(X)
 ```
 
 
-#### Visualizing Correlative Relationships
+### Visualizing Correlative Relationships
 To fully understand attrition and its relationship to multiple variables we will create a correlation plot heat map. 
 This heat map will illustrate which variables have a positive, neutral, or negative correlative relationship with attrition so that we can further explore each piece of data. 
 ```{r}
@@ -352,52 +356,32 @@ cor.mtest <- function(mat, ...) {
 # matrix of the p-value of the correlation
 p.mat <- cor.mtest(tot_correlation)
 col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
-# Build corrNums.png
-png(height=1200, width=1500, pointsize=8, file="./project2/CorNum.png")
-corrplot(tot_correlation, method="color", col=col(200),  
-         type="upper", order="hclust", 
-         addCoef.col = "black", # Add coefficient of correlation
-         tl.col="black", tl.srt=45, #Text label color and rotation
-         # Combine with significance
-         p.mat = p.mat, sig.level = 0.01, insig = "blank", tl.cex = 1.25,
-         # hide correlation coefficient on the principal diagonal
-         diag=FALSE 
-         )
-ggsave("./project2/CorNum.png", units="in", width=5, height=4, dpi=600)
-dev.off()
-# Build corrPlot.png
+
 png(height=1200, width=1800, pointsize=15, file="./project2/CorPlot.png")
 corrplot(tot_correlation, method="circle", order="hclust",tl.col="black", type="full", tl.cex = 1, p.mat = p.mat, sig.level = 0.01, insig = "blank")
 ggsave("./project2/CorPlot.png", units="in", width=5, height=4, dpi=600)
 dev.off()
-# Build corrMixed.png
-png(height=1200, width=1500, pointsize=10, file="./project2/CorMix.png")
-corrplot.mixed(round(100*tot_correlation), number.cex = .75, tl.cex = 1, tl.pos = "lt",tl.col="black", is.corr=F)
-ggsave("./project2/CorMix.png", units="in", width=5, height=4, dpi=600)
-dev.off()
-
 ```
 
-#### Correlative Ranking for Attrition and Income:
+### Correlative Ranking for Attrition and Income:
 ```{r warning=FALSE, message=FALSE,fig.align='center'}
 AttritionCorrelation %>% top_n(10) %>% mutate(Feature = factor(Feature, Feature)) %>%
   ggplot(aes(Feature, Attrition, fill = Feature)) + geom_col(show.legend = FALSE) +
   coord_flip() + labs(title = "Top 10 Correlative Factors for Attrition") +
-  ylab("Correlation for Feature and Attrition") +
+  ylab("Correlation Between Features and Attrition") +
   scale_fill_discrete(guide = guide_legend(reverse = TRUE))+
     scale_color_fivethirtyeight() +
     theme_hc()
-
 
 IncomeCorrelation %>% top_n(10) %>% mutate(Feature = factor(Feature, Feature)) %>% 
   ggplot(aes(Feature, MonthlyIncome, fill = Feature)) + 
   geom_col(show.legend = FALSE) +
   labs(title = "Top 10 Correlative Factors for Monthly Income") +
-  ylab("Correlation for Feature and Monthly Income") + coord_flip() +
+  ylab("Correlation Between Features and Monthly Income") + coord_flip() +
     scale_color_fivethirtyeight() +
     theme_hc()
 
-
+#gridExtra::grid.arrange(acp, icp, nrow = 2)
 ```
 
 <hr>
@@ -408,7 +392,7 @@ IncomeCorrelation %>% top_n(10) %>% mutate(Feature = factor(Feature, Feature)) %
 <hr>
 
 
-#### Top 3 Factors of Attrition/Voluntary Turnover
+### Top 3 Factors of Attrition/Voluntary Turnover
 * Over Time 
 * No Stock Option
 * Low Employee Level
@@ -418,7 +402,7 @@ The two other factors that follow make intuitive sense since stock options are
 rarely given to hourly employees, and hourly employees tend to make up low level 
 employees. 
 
-```{r fig.align='center'}
+```{r fig.align='center', warning=FALSE}
 # Plot for job Correlation based on the 10 ranks
 job_corr <- cor(rdata %>% select(Attrition, OverTime, NoStock,
                                  LowLevel, JobSalesRepresentative,LowInvolve,
@@ -432,12 +416,11 @@ ggcorrplot(corr = job_corr, hc.order = TRUE,insig = 'blank',lab = TRUE,
   labs(title = "Correlation Between Variables and Attrition",
        subtitle = "Netural and Positive Correlation") +
   theme(plot.title = element_text(hjust = 0.5),
-       plot.subtitle = element_text(hjust = 0.5))
-
+       plot.subtitle = element_text(hjust = 0.5)) 
 ```
 
 
-#### Top 3 Factors of Monthly Income
+### Top 3 Factors of Monthly Income
 * Job Level
 * Total Working Years
 * Manager Job Level
@@ -446,7 +429,7 @@ Similar to the factors of Attrition, Job Level which holds rank 1 in our analysi
 is followed by total working years, and manager job level, which both are variables 
 that all make sense to be together intuitive.
 
-```{r fig.align='center'}
+```{r fig.align='center', warning=FALSE}
 
 # plot for income corr based on 10 ranks
 income_corr <- cor(rdata %>% select(MonthlyIncome, JobLevel,TotalWorkingYears,
@@ -465,7 +448,7 @@ ggcorrplot(corr = income_corr, hc.order = TRUE,insig = 'blank',lab = TRUE,
 ```
 
 
-#### Attrition for Specific Job Role:
+### Attrition for Specific Job Role:
 Upon discovering the top factors that contribute to attrition at FritoLay,
 we noticed the 4th rank to be the job role Sales Representative. 
 This captured our interest and led us to ask the question "Which job roles are seeing
@@ -473,6 +456,7 @@ the most amount of attrition?"
 
 Asking this question helped to uncover the top 3 job roles in which FritoLay is 
 experiencing the greatest percentage of turnover within each role.
+
 * Sales Representative - 45.28% of the individuals in this role left.
 * Human Resources - 22.22% of the individuals in this role left.
 * Laboratory Technicians - 19.61% of the individuals in this role left.
@@ -483,10 +467,11 @@ company should aim for a turnover rate of 10% or less.
 
 Based on these numbers, the Sales Representative position is well above the typical 25% turnover rate within the labor market.
 Additionally, the Human Resources and Laboratory Technicians roles are each nearly double the ideal turnover rate of 10% or less. 
-```{r fig.align='center'}
+```{r fig.align='center', warning=FALSE}
+
+churn_jr <- as.data.frame(vizdata %>% count(JobRole, Attrition))
 # creating a DF that shows the COUNT of ATTRITION for each role
 churn_jr <- as.data.frame(vizdata %>% count(JobRole, Attrition))
-
 # Creating a DF that has PERCENT of LEAVE/STAY for each Job Role
 churn_percent_jr <- 
   as.data.frame(churn_jr %>% group_by(JobRole) %>%
@@ -507,70 +492,102 @@ churn_percent_jr %>%
 
 
 
-Area of Opportunity by - Job Roles
+### Various Age Group Representation Within Various Roles:
 
-```{r fig.align='center'}
-# raw amount of individuals with certain degrees:
-#vizdata %>% select(EducationField) %>%
- # ggplot(aes(EducationField, fill = EducationField)) +
-  #geom_bar(show.legend = F) + coord_flip() +
-  #ggtitle("Number of Employees with Various Education Fields")
+After discovering the percent of attrition seen within each of the job roles, we felt the 
+need to take it a level further and investigate the age categories to understand if there was any
+visual evidence that certain age groups may see higher instances of attrition, and then observing 
+how those age groups are allocated around various job roles.
 
-# creating a DF that shows the COUNT of ATTRITION for Education Field
-churn_ef <- as.data.frame(vizdata %>% count(EducationField, Attrition))
+A breakdown of age groups are by the following: 
 
-# Creating a DF that has PERCENT of LEAVE/STAY for each Job Role
-churn_percent_ef <- 
-  as.data.frame(churn_ef %>% group_by(EducationField) %>%
+* Gen Z: 26 or younger
+* Millennial: older than 26 but younger than 42
+* Gen X: 42 or older, but younger than 57
+* Boomers II: older than 57 but younger than 68
+* Boomers I: 68 or older
+
+```{r fig.align='center', warning=FALSE, message=FALSE}
+# Attrition percentage for each age group:
+churn_gen <- as.data.frame(vizdata %>% count(Generations, Attrition))
+# creating a DF that shows the COUNT of ATTRITION for each role
+churn_percent_gen <- 
+  as.data.frame(churn_gen %>% group_by(Generations) %>%
                   mutate(Percentage = paste0(round(n/sum(n)*100,2))))
 
-churn_percent_ef$Percentage <- as.numeric(churn_percent_ef$Percentage)
+churn_percent_gen$Percentage <- as.numeric(churn_percent_gen$Percentage)
 
-
-# Tree map of Employees that leave per Education Field
-churn_percent_ef %>% 
+# Tree map of Employees that leave per Job Role
+churn_percent_gen %>% 
   filter(Attrition == "Left") %>%
-  ggplot(aes(area = Percentage, fill = EducationField, label = paste(EducationField, "\n",Percentage,"%")))+
-  geom_treemap(show.legend = FALSE,  color = "black") +
+  ggplot(aes(area = Percentage, fill = Generations, label = paste(Generations, "\n",Percentage,"%")))+
+  geom_treemap(show.legend = FALSE, color = 'black') +
   geom_treemap_text(color = 'white', place = "center") +
-  ggtitle('Percentage of Attrition Within Each Degree Type')
+  ggtitle('Percentage of Attrition Within Each Age Category') + 
+  theme(plot.title = element_text(hjust = .5))
 
-```
+# bar plot of generation breakdown in total company
+vizdata %>% ggplot(aes(Generations, fill = Generations)) + 
+  geom_bar(show.legend = F, color = "black") +
+  ggtitle("Amount of Employees Within Various Age Categories") +
+  ylab("Number of Employees") + xlab("Age Categories") +
+    scale_color_fivethirtyeight() +
+    theme_hc() + theme(plot.title = element_text(hjust = .5)) +
+  geom_text(stat = 'count', aes(label = ..count..), vjust = -.25)
+
+# correlation plot for age categories and specific job roles
+age_job_cor <- cor(rdata %>% select(JobLaboratoryTechnician, JobResearchScientist,
+                                    JobSalesRepresentative, JobSalesExecutive,JobManager,
+                                    JobHumanResources, JobHealthcareRepresentative,
+                                    JobManufacturingDirector,JobResearchDirector,
+                                    GenX,GenZ,Millennials,Boomersii))
 
 
-Matching Degree type to Job Role and age generation
-```{r fig.align='center'}
-# Degree type within each JobRole
-vizdata %>% select(EducationField, JobRole) %>%
-  group_by(EducationField, JobRole) %>%
+# Corr Plot with Core Feature Selection
+ggcorrplot(corr = age_job_cor, hc.order = TRUE,insig = 'blank',lab = TRUE,
+           lab_size = 2, type = 'upper',
+           colors = c("#6D9EC1", "white", "#E46726")) +
+  labs(title = "Correlation Between Age and Job Role",
+       subtitle = "Netural and Positive Correlation") +
+  theme(plot.title = element_text(hjust = 0.5),
+       plot.subtitle = element_text(hjust = 0.5))
+
+
+# age groups within each jobrole
+vizdata %>% select(Generations, Department) %>%
+  group_by(Generations, Department) %>%
   summarize(n = n()) %>%
-  ggplot(aes(x = fct_reorder(EducationField, n), y = n, fill = EducationField)) +
-  geom_bar(stat = "identity") + facet_wrap(.~JobRole) +
-  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+  ggplot(aes(x = fct_reorder(Generations, n), y = n, fill = Generations)) +
+  geom_bar(stat = "identity", color = "black") + facet_wrap(.~Department) + 
+  ggtitle("Allocation of Various Age Groups in Each Department") + ylab("Amount of Employees") +
+  xlab("Age Groups") + theme(axis.text.x = element_blank(),
+                                  axis.ticks.x = element_blank()) +
+    scale_color_fivethirtyeight() +
+    theme_hc() + theme(plot.title = element_text(hjust = .5))
 
 
-#vizdata %>% select(EducationField, Generations) %>%
- # group_by(EducationField, Generations) %>%
-  #summarize(n = n()) %>%
-  #ggplot(aes(x = fct_reorder(EducationField, n), y = n, fill = EducationField)) +
-  #geom_bar(stat = "identity") + facet_wrap(.~Generations) +
-  #theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
-  
 # age groups within each jobrole
 vizdata %>% select(Generations, JobRole) %>%
   group_by(Generations, JobRole) %>%
   summarize(n = n()) %>%
   ggplot(aes(x = fct_reorder(Generations, n), y = n, fill = Generations)) +
-  geom_bar(stat = "identity") + facet_wrap(.~JobRole) +
-  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
-
-#vizdata %>% select(MonthlyIncome, Generations, JobRole) %>%
- # ggplot(aes(MonthlyIncome, Generations, fill = Generations)) +
-  #geom_boxplot(show.legend = FALSE) + 
-  #coord_flip() + 
-  #facet_wrap(.~JobRole)
-
+  geom_bar(stat = "identity", color = "black") + facet_wrap(.~JobRole) + 
+  ggtitle("Allocation of Various Age Groups in Each Job Role") + ylab("Amount of Employees") +
+  xlab("Age Groups") + theme(axis.text.x = element_blank(),
+                                  axis.ticks.x = element_blank()) +
+    scale_color_fivethirtyeight() +
+    theme_hc() + theme(plot.title = element_text(hjust = .5))
 ```
+After looking at the data, we can see some obvious takeaways. 
+
+* It appears that the company has a high proportion of Millennial employees (61%)
+followed by a 26% allocation of employees in the Gen X category.
+
+* Gen X has the lowest amount of attrition within it's age group at 10.34%
+while Gen Z has a staggering 30.43% percentage of attrition within it's age group.
+
+* Sales Representatives are made up of mostly younger age groups. This makes sense since a 
+sales rep is typically considered more of an entry level sales position. 
 
 
 <hr>
@@ -578,11 +595,14 @@ vizdata %>% select(Generations, JobRole) %>%
 <hr>
 
 
-#### Naive Bayes
-Summary: 
+### Naive Bayes
+Brief Model Overview:
+A Naive Bayes model relies on conditional probability, which is the
+probability that something will happen given that something else has already occurred. 
 
-Results:
-```{r fig.align='center'}
+#### Results:
+
+```{r fig.align='center', warning=FALSE, message=FALSE}
 iterations = 100
 masterAcc_nb = matrix(nrow = iterations)
 masterSpec_nb = matrix(nrow = iterations)
@@ -593,199 +613,214 @@ nbArray <- c("OverTime","NewRole", "WorkLifeBalance", "JobInvolvement",
              "JobSatisfaction", "Gender", "EnvironmentSatisfaction",
              "BusinessTravel", "MonthlyIncome", "FreshHire", "AgeUnder35",
              "LogIncome", "Divorced", "HourlyOver40", "NoStock","HighPerform")
-
-
+set.seed(7)
 for(j in 1:iterations){
   trainIndices = sample(1:dim(data)[1],round(splitPerc * dim(data)[1]))
   train = data[trainIndices,]
   test = data[-trainIndices,]
+  
   model = naiveBayes(train[,nbArray],as.factor(train$Attrition))
-  CM_NB = confusionMatrix(table(predict(model,test[,nbArray]),as.factor(test$Attrition), dnn = c("Prediction", "Reference")), positive = '1')
+  
+  CM_NB = confusionMatrix(table(predict(model,test[,nbArray]),as.factor(test$Attrition),
+                                dnn = c("Prediction", "Reference")), positive = '1')
+  
   masterAcc_nb[j] = CM_NB$overall[1]
   masterSen_nb[j] = CM_NB$byClass[1]
   masterSpec_nb[j] = CM_NB$byClass[2]
 }
 
-# function for plotting confusion matrix
-ggplotConfusionMatrix_nb <- function(m){
-  p <- ggplot(data= as.data.frame(m$table),
+specs_nb <- c(colMeans(masterAcc_nb),colMeans(masterSen_nb),colMeans(masterSpec_nb))
+
+names(specs_nb) <- c("Avg Accuracy ", "Avg Sensitivity ", "Avg Specificity")
+specs_nb
+
+model2 = naiveBayes(train[,nbArray], as.factor(train$Attrition))
+nbCM = confusionMatrix(table(predict(model2,test[,nbArray]), as.factor(test$Attrition),
+                      dnn = c("Prediction", "Reference")), positive = '1')
+```
+
+
+```{r fig.align='center', warning=FALSE, message=FALSE}
+# Confusion Matrix code
+nb_CM <- function(m){
+  plot <- ggplot(data = as.data.frame(m$table),
               aes(x = Reference, y = Prediction)) +
-    geom_tile(aes(fill = log(Freq)), color = "white") +
-    scale_fill_gradient(low = "white", high = "steelblue") +
-    geom_text(aes(x = Reference, y = Prediction, label = Freq)) +
+    geom_tile(aes(fill = log(Freq)),
+              color = "black", show.legend = FALSE) +
+    scale_fill_gradient(low = "light blue", high = "steelblue") +
+    geom_text(show.legend = FALSE ,aes(x = Reference, y = Prediction, label = Freq)) +
     theme(legend.position = 'none') +
-    ggtitle("Confusion Matrix for Naive Bayes Model")
-  return(p)
+    ggtitle("Naive Bayes Attrition Confusion Matrix") +
+    scale_color_fivethirtyeight() +
+    theme_hc() + theme(plot.title = element_text(hjust = .5))
+    
+  return(plot)
 }
-
-
-ggplotConfusionMatrix_nb(CM_NB)  
-  
-#confusionMatrix(table(predict(model,test[,nbArray]), as.factor(test$Attrition),
- #                     dnn = c("Prediction", "Reference")), positive = '1')
-
-#specs_nb <- c(colMeans(masterAcc),colMeans(masterSen),colMeans(masterSpec))
-
-#names(specs_nb) <- c("Avg Accuracy", "Avg Sensitivity", "Avg Specificity")
-#specs_nb
-```
-
-
-```{r include=FALSE}
-# code for using selection model, and trying regression for var selection. 
-#set.seed(7)
-#splitPerc = .7
-#trainIndices = sample(1:dim(rdata)[1],round(splitPerc * dim(rdata)[1]))
-#train = rdata[trainIndices,]
-#test = rdata[-trainIndices,]
-#lreg <- glm(formula = Attrition ~ .,
- #             data= rdata, family="binomial")
-#used the following for the knn model 
-#lreg <- lm(formula = Attrition ~ .,
-              #data= rdata)
-
-# using the selected models from forward selection:
-#lreg <- lm(formula = Attrition ~OverTime+NoStock+LowLevel+LowInvolve+Sales+JobSatisfaction+
- #             NoBalance+LongCommute+JobInvolvement+NumCompaniesWorked+AgeUnder35+
-  #            BusinessTravel+RelationshipSatisfaction+YearsSinceLastPromotion+EnvironmentSatisfaction+
-   #           FreshHire+JobHealthcareRepresentative, data = rdata)
-
-#atPrd <- predict(lreg, type="response", newdata = test)
-#actualPred <- ifelse(atPrd > 0.5, 1, 0)
-#confusionMatrix(table(as.factor(actualPred), as.factor(test$Attrition),
- #                     dnn = c("Prediction", "Reference")), positive = '1')
-
-#plot(roc(response = lreg$y, predictor = lreg$
-  #         fitted.values, plot = T), print.thres = "best", print.auc = T)
-
-#ols_step_forward_p(lreg, penter = .05, details = TRUE)
-
-
+nb_CM(nbCM)  
 
 ```
 
 
-#### K Nearest Neighbor
-Summary:
+<hr>
+### K Nearest Neighbor
+Brief Model Overview:
+K Nearest Neighbor (KNN) uses proximity to make predictions about an individual
+data point. It is used as a classification model which assumes similar points can be found near one another. 
 
-Results:
-```{r fig.align='center', warning=FALSE}
+#### Results:
+```{r fig.align='center', warning=FALSE, message=FALSE}
+# Creating a loop with test/train split 
+# to get avgs and find best k value to run model with. 
+
 iterations = 50
 set.seed(7)
 numks = round(sqrt(dim(scaled_data)[1])*1.2)
 masterAcc = matrix(nrow = iterations, ncol = numks)
 masterSpec= matrix(nrow = iterations, ncol = numks)
 masterSen = matrix(nrow = iterations, ncol = numks)
-# standard explore: avg - 86 / 76.8 / 86.6 / 78
-#knnVar <- c("OverTime", "Single", "JobSalesRepresentative", 
- #             "LessThan4k", "FreshWorker",
-  #            "LowLevel", "FreshHire", "LowInvolve", "NewRole", "NoBalance",
-   #           "AgeUnder35", "NoStock","JobSatisfaction","WorkLifeBalance",
-    #          "JobInvolvement","DueForPromotion","DistanceFromHome",
-     #         "MonthlyIncome")
+splitPerc = .7
 
-# top 10 : avg - 85.9 / 78 / 86 / 79
+# dataset to run into loop/etc
 knnVar <- c("OverTime","NoStock","LowLevel","JobSalesRepresentative",
               "LowInvolve","LessThan4k","FreshHire","Single","NewRole",
               "AgeUnder35")
 
-# the following is for forward model selection 85/67/86 
-#knnVar <- c("OverTime", "NoStock","LowLevel", "LowInvolve","Sales", "JobSatisfaction",
-         #     "NoBalance", "LongCommute","JobInvolvement","NumCompaniesWorked","AgeUnder35",
-          #    "BusinessTravel","RelationshipSatisfaction","YearsSinceLastPromotion","EnvironmentSatisfaction",
-           #  "FreshHire","JobHealthcareRepresentative")
-
+# loop to generate the average perf. of model
 for(j in 1:iterations) {
   trainIndices = sample(1:dim(scaled_data)[1],round(splitPerc * dim(scaled_data)[1]))
   train = scaled_data[trainIndices,]
   test = scaled_data[-trainIndices,]
+  
   for(i in 1:numks) {
-    # predict using i-th value of k
-    classifications = knn(train[,knnVar],test[,knnVar],as.factor(train$Attrition), prob = TRUE, k = i)
-    CM= confusionMatrix(table(as.factor(test$Attrition),classifications, dnn = c("Prediction", "Reference")), positive = '1')
+    knnClassification = knn(train[,knnVar],test[,knnVar],as.factor(train$Attrition),
+                          prob=TRUE, k = i)
+    
+    CM = confusionMatrix(table(as.factor(test$Attrition), knnClassification,
+                              dnn =c("Prediction", "Reference")), positive = '1')
+    
     masterAcc[j,i] = CM$overall[1]
     masterSen[j,i] = CM$byClass[1]
-    masterSpec[j,i] = ifelse(is.na(CM$byClass[2]),0,CM$byClass[2])
+    masterSpec[j,i] = CM$byClass[2]
   }
 }
+# pulling the avgs.
 MeanAcc <- colMeans(masterAcc)
 MeanSen <- colMeans(masterSen)
 MeanSpec <- colMeans(masterSpec)
-plot(seq(1,numks), MeanAcc, main="K value determination", xlab="Value of K")
-
-#which.max(MeanAcc) # suggested k for best accuracy
-#which.max(MeanSen)
-#which.max(MeanSpec)
-
 k <- which.max(MeanAcc)
+
 specs <- c(MeanAcc[k], MeanSen[k], MeanSpec[k])
 names(specs) <- c("Avg Acc", "Avg Sen", "Avg Spec")
 specs
 
-classifications = knn(train[,knnVar],test[,knnVar],as.factor(train$Attrition), prob = TRUE, k = k)
-#confusionMatrix(table(test$Attrition,classifications, dnn = c("Prediction", "Reference")), positive = '1')
-
-#attributes(classifications)$prob
 
 
-#roc(test$Attrition, attributes(classifications)$prob)
+knnClassification = knn(train[,knnVar],test[,knnVar],as.factor(train$Attrition),
+                      prob=TRUE, k = k)
 
-plot(roc(test$Attrition, attributes(classifications)$prob),
-     print.thres = T,
-     print.auc=T)
+# confusionMatrix(table(test$Attrition, knnClassification,
+#                       dnn = c("Prediction","Reference")), positive = '1')
 
-u <-union(classifications,test[,knnVar])
-t <- table(factor(classifications,u), factor(test$Attrition,u), dnn = c("Prediction", "Reference"))
-CMP <- confusionMatrix(t)
-
-cat("Accuracy:", CM$overall[1]*100, "%",
-    "\nSensitivity:",CM$byClass[1]*100, "%",
-    "\nSpecificity:",CM$byClass[2]*100, "%")
-
-knn_plot <- as.data.frame(CM$table)
-
-knn_plot$Prediction <- factor(knn_plot$Prediction, levels = rev(levels(knn_plot$Reference)))
-
-ggplot(knn_plot, aes(Prediction, Reference, fill=(Freq))) +
-  geom_tile(show.legend = FALSE) + geom_text(aes(label=(Freq))) +
-  scale_fill_gradient(low = "white", high = "steelblue") +
-  labs(x = "Reference", y = "Prediction")
 
 ```
+
+
+
+```{r fig.align='center', warning=FALSE, message=FALSE}
+# KNN CONFUSION MATRIX - K PLOT - ROC/AUC PLOT
+
+# plotting kth values
+plot(seq(1,numks), MeanAcc, main="K Value Plot", xlab="ith Value of K",
+     ylab = "Mean Accuracy")
+
+u <- union(knnClassification, test$Attrition)
+t <- table(factor(knnClassification, u), factor(test$Attrition, u),
+           dnn = c("Prediction", "Reference"))
+
+CMP <- confusionMatrix(t)
+
+knn_cm_plot <- as.data.frame(CMP$table)
+
+knn_cm_plot$Prediction <- factor(knn_cm_plot$Prediction,
+                                 levels = rev(levels(knn_cm_plot$Reference)))
+
+ggplot(knn_cm_plot, aes(Prediction, Reference, fill=(Freq))) +
+  geom_tile(show.legend = FALSE, color = 'black') + 
+  geom_text(aes(label=(Freq))) +
+  scale_fill_gradient(low = "light blue", high = "steelblue") +
+  labs(x = "Reference", y = "Prediction") +
+    ggtitle("KNN Attrition Confusion Matrix") +
+    scale_color_fivethirtyeight() +
+    theme_hc()+ theme(plot.title = element_text(hjust = .5))
+
+plot(roc(test$Attrition, attributes(knnClassification)$prob),
+     print.thres = T, print.auc=T, main = "AUC Curve for KNN Performance")
+```
+
 
 
 <hr>
 <center><h1>Predictive Model for Income</h1></center>
 <hr>
 
-Visualizing relationships of the selected Variables 
-```{r warning=FALSE, message=FALSE, fig.align='center'}
-data %>% select('MonthlyIncome','JobLevel','TotalWorkingYears','JobRole') %>%
-  ggpairs(title = "Correlation for Monthly Income using Linear Regression Features", aes(color= "blue"), color = "blue")
 
-```
+### Linear Regression for Monthly Income
+Brief Model Overview:
+Linear Regression is a model that finds the best "fit" line between the independent and dependent variable(s).
 
+#### Results and Assumptions: 
 
-#### Linear Regression for Monthly Income
-Summary:
-
-Results:
-```{r}
+```{r message=FALSE, warning=FALSE, fig.align='center'}
+# ORIGINAL MODEL
 set.seed(7)
-trainIndices = sample(1:dim(rdata)[1],round(splitPerc * dim(rdata)[1]))
+splitPerc = .7
+trainIndices = sample(1:dim(data)[1],round(splitPerc * dim(data)[1]))
 train = data[trainIndices,]
 test = data[-trainIndices,]
-salFit <- lm(MonthlyIncome ~ 
+
+income_fit <- lm(MonthlyIncome ~ 
                JobLevel +
                TotalWorkingYears +
                JobRole, data=train)
-summary(salFit)
-salPrd <- predict(salFit, interval="predict",newdata = test)
-RMSE <- sqrt(mean((salPrd[,1] - test$MonthlyIncome)^2))
-RMSE
+
+ols_plot_diagnostics(income_fit)
+
+income_pred <- predict(income_fit, interval="predict",newdata = test)
+
+RMSE <- sqrt(mean((income_pred[,1] - test$MonthlyIncome)^2))
+cat("RMSE = ",RMSE)
+ 
+
+# allows us to see vars in model and their stats. 
+stargazer(income_fit, type = 'text') # adj r2 .92
+# prints out vif 
+car::vif(income_fit)
+
 
 ```
+
+
 
 <hr>
 <center><h1>Conclusion</h1><center>
 <hr>
+
+Creating visual representation of the data was very helpful in understanding any
+correlative relationships between the key response variables and meaningful factors. 
+upon investigating some of the relationships there is a number of extra digging that
+can be done to truly determine ways the company can address and improve the overall percentage of 
+attrition. 
+
+The 2 models utilized for prediction of employee attrition were Naieve Bayes, 
+and KNN. While both models were similarly accurate (NB - 83%, KNN - 86%) the KNN model 
+produced the best overall results and is the model that we have chosen to deploy
+for our initial prediction of attrition with the employees currently at the company. 
+
+One final takeaway and recommendation is that because each role in the company or department does not
+have an equal proportion of attrition within their respective spaces, they
+should be analyzed on a per basis approach. While it would be nice to have an
+overall assumptive approach, the pains employees experience within certain job
+roles vary and should be addressed as such. Given more time and resources I 
+would be interested in trying to apply different feature selection approach
+such as lasso, and also apply more potentially appropriate machine learning
+models such a decision tree for predicting attrition. 
