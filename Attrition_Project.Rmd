@@ -1,9 +1,9 @@
 ---
 always_allow_html: TRUE
 output: 
-  github_document: default
   html_document: 
     code_folding: hide
+  github_document: default
 ---
 <center><h1>FritoLay Attrition Case Study</h1></center>
 
