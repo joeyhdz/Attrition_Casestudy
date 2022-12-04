@@ -69,6 +69,7 @@ data <- as.data.frame(read.csv("C:/Users/Joey/Desktop/project2/CaseStudy2-data.c
 vizdata <- as.data.frame(read.csv("C:/Users/Joey/Desktop/project2/CaseStudy2-data.csv"))
 employee <- read.csv("C:/Users/Joey/Desktop/project2/CaseStudy2-data.csv", stringsAsFactors = T)
 
+
 ```
 <center><h1>Exploratory Data Analysis</h1></center>
 <hr>
@@ -824,3 +825,121 @@ roles vary and should be addressed as such. Given more time and resources I
 would be interested in trying to apply different feature selection approach
 such as lasso, and also apply more potentially appropriate machine learning
 models such a decision tree for predicting attrition. 
+
+
+
+```{r include=FALSE}
+attdata <- read.csv("C:/Users/Joey/Desktop/ddsproject2/Datasets & Instructions/CaseStudy2CompSet No Attrition.csv", header = TRUE)
+
+# CREATING INTUITIVE TITLE FOR VIZ OF DATA
+
+attdata$EducationLevel <- ifelse(attdata$Education == 1, "No College",
+                              ifelse(attdata$Education == 2, "Some College",
+                                     ifelse(attdata$Education == 3, "Bachelors",
+                                            ifelse(attdata$Education == 4, "Masters", "Phd"))))
+
+# Breaking Age into Generational Groups
+attdata$Generations <- ifelse(attdata$Age > 26 & attdata$Age < 42, "Millennials",
+                           ifelse(attdata$Age <= 26, "Gen Z",
+                                  ifelse(attdata$Age >= 42 & attdata$Age <57, "Gen X",
+                                         ifelse(attdata$Age >=57 & attdata$Age <= 67, "Boomers II",
+                                                ifelse(attdata$Age >= 68, "Boomers I", 'Silent')))))
+
+
+# attdata$Attrition <- ifelse(attdata$Attrition == "Yes",1,0)
+attdata$OverTime <- ifelse(attdata$OverTime == "Yes",1,0)
+attdata$Gender <- ifelse(attdata$Gender == "Male",1,0)
+attdata$BusinessTravel <- as.numeric(factor(attdata$BusinessTravel, 
+                                         levels=c("Non-Travel", "Travel_Rarely", "Travel_Frequently"))) -1
+attdata$HumanResources <- ifelse(attdata$Department == "Human Resources",1,0)
+attdata$ResearchDevelopment <- ifelse(attdata$Department == "Research & Development",1,0)
+attdata$Sales <- ifelse(attdata$Department == "Sales",1,0)
+attdata$Single <- ifelse(attdata$MaritalStatus == "Single",1,0)
+attdata$Married <- ifelse(attdata$MaritalStatus == "Married",1,0)
+attdata$Divorced <- ifelse(attdata$MaritalStatus == "Divorced",1,0)
+attdata$EduHumanResources <- ifelse(attdata$EducationField == "Human Resources",1,0)
+attdata$EduLifeSciences <- ifelse(attdata$EducationField == "Life Sciences",1,0)
+attdata$EduMedical <- ifelse(attdata$EducationField == "Medical",1,0)
+attdata$EduMarketing <- ifelse(attdata$EducationField == "Marketing",1,0)
+attdata$EduTechnicalDegree <- ifelse(attdata$EducationField == "Technical Degree",1,0)
+attdata$EduOther <- ifelse(attdata$EducationField == "Other",1,0)
+attdata$JobSalesExecutive <- ifelse(attdata$JobRole == "Sales Executive",1,0)
+attdata$JobResearchDirector <- ifelse(attdata$JobRole == "Research Director",1,0)
+attdata$JobManufacturingDirector <- ifelse(attdata$JobRole == "Manufacturing Director",1,0)
+attdata$JobResearchScientist <- ifelse(attdata$JobRole == "Research Scientist",1,0)
+attdata$JobSalesExecutive <- ifelse(attdata$JobRole == "Sales Executive",1,0)
+attdata$JobSalesRepresentative <- ifelse(attdata$JobRole == "Sales Representative",1,0)
+attdata$JobManager <- ifelse(attdata$JobRole == "Manager",1,0)
+attdata$JobHealthcareRepresentative <- ifelse(attdata$JobRole == "Healthcare Representative",1,0)
+attdata$JobHumanResources <- ifelse(attdata$JobRole == "Human Resources",1,0)
+attdata$JobLaboratoryTechnician <- ifelse(attdata$JobRole == "Laboratory Technician",1,0)
+attdata$Bachelors <- ifelse(attdata$EducationLevel == 'Bachelors', 1, 0)
+attdata$Masters <- ifelse(attdata$EducationLevel == "Masters", 1, 0)
+attdata$SomeCollege <- ifelse(attdata$EducationLevel == "Some College", 1, 0)
+attdata$NoCollege <- ifelse(attdata$EducationLevel == "No College", 1, 0)
+attdata$Phd <- ifelse(attdata$EducationLevel == "Phd", 1, 0)
+attdata$Millennials <- ifelse(attdata$Generations == "Millennials", 1, 0)
+attdata$GenZ <- ifelse(attdata$Generations == "Gen Z", 1, 0)
+attdata$GenX <- ifelse(attdata$Generations == "Gen X", 1, 0)
+attdata$Boomersii <- ifelse(attdata$Generations == "Boomers II", 1, 0)
+
+# NUMERICAL ENCODING BELOW:
+attdata$LessThan4k <- ifelse(attdata$MonthlyIncome < 4000, 1, 0)
+attdata$FreshWorker <- ifelse(attdata$NumCompaniesWorked <=1.25, 1, 0)
+attdata$LowLevel <- ifelse(attdata$JobLevel == 1, 1, 0)
+attdata$FreshHire <- ifelse(attdata$YearsAtCompany <=4, 1, 0) 
+attdata$WorkMore30 <- ifelse(attdata$TotalWorkingYears >=30, 1, 0)
+attdata$LowInvolve <- ifelse(attdata$JobInvolvement <2, 1, 0)
+attdata$NewRole <- ifelse(attdata$YearsInCurrentRole <=2, 1, 0)
+attdata$NoBalance <- ifelse(attdata$WorkLifeBalance <2, 1, 0)
+attdata$SalaryHike <- ifelse(attdata$PercentSalaryHike  >17, 1, 0) 
+attdata$HighSatisfaction <- ifelse(attdata$JobSatisfaction >= 3, 1, 0) 
+attdata$LongCommute <- ifelse(attdata$DistanceFromHome >= 13, 1, 0)
+attdata$AgeUnder35 <- ifelse(attdata$Age <=35, 1, 0) 
+attdata$DueForPromotion <- ifelse(!attdata$YearsSinceLastPromotion %in% c(1,5,6,7), 1, 0) 
+attdata$HighPerform <- ifelse(attdata$PerformanceRating >= 3, 1, 0) 
+attdata$NoStock <- ifelse(attdata$StockOptionLevel < 1, 1 , 0)  
+attdata$LowTraining <- ifelse(attdata$TrainingTimesLastYear < 2, 1, 0)
+attdata$HourlyOver40 <- ifelse(attdata$HourlyRate > 40, 1, 0) 
+attdata$MonthlyOver15k <- ifelse(attdata$MonthlyRate > 15000, 1, 0) 
+attdata$LogIncome <- log(attdata$MonthlyIncome) 
+
+attdata <- subset(attdata, select = -c(Over18, Department, EducationLevel, 
+                                  Generations, JobRole, MaritalStatus,
+                                  EducationField, EmployeeCount,
+                                  StandardHours))
+
+attdata$IDs <- attdata$ID
+# Scaling data for use in the KNN model 
+attdata <- data.frame(apply(attdata, MARGIN = 2,
+                                   FUN = function(X) (X - min(X))/diff(range(X))))
+attdata$ID <- attdata$IDs
+
+attClass = knn(scaled_data[,knnVar], attdata[,knnVar],as.factor(scaled_data$Attrition),
+               prob = TRUE, k = round(sqrt(dim(scaled_data)[1])))
+
+attPred <- data.frame(attClass)
+attPred<- cbind(attdata$ID, attPred)
+
+names(attPred) <- c("ID", "Attrition")
+
+attPred$Attrition <- as.factor(ifelse(attPred$Attrition == 0, "No", "Yes"))
+
+write.csv(attPred, file = "./Case2PredictionsJ_Hernandez Attrition.csv",row.names = FALSE)
+```
+
+```{r}
+midata <- read_xlsx("C:/Users/Joey/Desktop/ddsproject2/Datasets & Instructions/CaseStudy2CompSet No Salary.xlsx")
+view(midata)
+miFit <- lm(MonthlyIncome ~ JobLevel +
+               TotalWorkingYears +
+               JobRole, data = data)
+
+miPred <- predict(miFit, interval = "predict", newdata = midata)
+
+Income_Prediction <- data.frame(cbind(midata$ID, miPred[,1]))
+names(Income_Prediction) <- c("ID", "MonthlyIncome")
+
+write.csv(Income_Prediction, file = "./Case2PredictionsJ_Hernandez Salary.csv",row.names = FALSE)
+
+```
