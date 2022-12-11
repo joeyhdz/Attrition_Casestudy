@@ -12,7 +12,7 @@
 
 
 <title>Attrition_Project.knit</title>
-<a href = "https://www.youtube.com/watch?v=4uoISwAoATg">To View A Recording of These finding click here! </a>
+
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
 document.addEventListener('DOMContentLoaded', function(e) {
@@ -445,6 +445,8 @@ display: none;
 FritoLay Attrition Case Study
 </h1>
 </center>
+<a href="https://www.youtube.com/watch?v=4uoISwAoATg">View A Video of
+These Findings Here!</a>
 <hr>
 <div id="introduction" class="section level3">
 <h3>Introduction:</h3>
@@ -1245,6 +1247,18 @@ be addressed as such. Given more time and resources I would be
 interested in trying to apply different feature selection approach such
 as lasso, and also apply more potentially appropriate machine learning
 models such a decision tree for predicting attrition.</p>
+<pre class="r"><code>midata &lt;- read_xlsx(&quot;C:/Users/Joey/Desktop/ddsproject2/Datasets &amp; Instructions/CaseStudy2CompSet No Salary.xlsx&quot;)
+
+miFit &lt;- lm(MonthlyIncome ~ JobLevel +
+               TotalWorkingYears +
+               JobRole, data = data)
+
+miPred &lt;- predict(miFit, interval = &quot;predict&quot;, newdata = midata)
+
+Income_Prediction &lt;- data.frame(cbind(midata$ID, miPred[,1]))
+names(Income_Prediction) &lt;- c(&quot;ID&quot;, &quot;MonthlyIncome&quot;)
+
+write.csv(Income_Prediction, file = &quot;./Case2PredictionsJ_Hernandez Salary.csv&quot;,row.names = FALSE)</code></pre>
 </div>
 </div>
 
