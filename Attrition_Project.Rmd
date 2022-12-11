@@ -7,7 +7,7 @@ output:
 ---
 <center><h1>FritoLay Attrition Case Study</h1></center>
 
-
+<a href = 'https://www.youtube.com/watch?v=4uoISwAoATg'>View A Video of These Findings Here!</a>
 <hr>
 ### Introduction:
 * Steven Williams - CEO - FritoLay
