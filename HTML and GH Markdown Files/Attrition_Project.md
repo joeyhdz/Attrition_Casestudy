@@ -6,7 +6,7 @@ FritoLay Attrition Case Study
 </center>
 <hr>
 
-## [To watch a presentation of this case study click here!](https://joeyhdz.shinyapps.io/AttritionBarPlots/?_ga=2.46717678.895692125.1669951695-1021813642.1667347631)
+## [To watch a presentation of this case study click here!](https://www.youtube.com/watch?v=4uoISwAoATg)
 
 ### Introduction:
 
