@@ -930,7 +930,7 @@ write.csv(attPred, file = "./Case2PredictionsJ_Hernandez Attrition.csv",row.name
 
 ```{r}
 midata <- read_xlsx("C:/Users/Joey/Desktop/ddsproject2/Datasets & Instructions/CaseStudy2CompSet No Salary.xlsx")
-view(midata)
+
 miFit <- lm(MonthlyIncome ~ JobLevel +
                TotalWorkingYears +
                JobRole, data = data)
