@@ -13,7 +13,7 @@ DDSAnalytics is an analytics company that specializes in talent management solut
 ### Task:
 We have been provided a dataset to perform a data analysis to identify factors that lead to attrition.  You should identify the top three factors that contribute to turnover (backed up by evidence provided by analysis). Experiments and analysis must be conducted in R. You will also be asked to build a model to predict attrition.  Finally, you will develop an RShiny App to visualize some of the relationships or lack thereof.
 
-## Snippets of The Project:
+## Project Snapshots:
 ### Correlation of Variables:
 To fully understand attrition and its relationship to multiple variables we will create a correlation plot heat map. This heat map will illustrate which variables have a positive, neutral, or negative correlative relationship with attrition so that we can further explore each piece of data.
 ![image](https://user-images.githubusercontent.com/81498617/205467262-15a1043d-f7e2-4997-9e76-c63b473d9670.png)
