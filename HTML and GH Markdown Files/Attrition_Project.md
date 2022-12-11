@@ -6,6 +6,8 @@ FritoLay Attrition Case Study
 </center>
 <hr>
 
+## [To watch a presentation of this case study click here!](https://www.youtube.com/watch?v=4uoISwAoATg)
+
 ### Introduction:
 
 - Steven Williams - CEO - FritoLay
